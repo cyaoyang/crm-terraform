@@ -1,0 +1,22 @@
+# --- Secrets: never commit these ---
+*.pem
+crm-bastion-key
+crm-bastion-key.pub
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+*.tfvars.json
+
+# --- Terraform working files ---
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+
+# --- Large build artifacts / dependency bundles (rebuild, don't commit) ---
+*.zip
+python/
+reportlab-layer/
+
+# --- Misc local artifacts ---
+console-log.txt
