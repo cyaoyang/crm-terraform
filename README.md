@@ -21,23 +21,25 @@ Coming from six years in MAS-regulated credit risk and collections roles (Anext 
                               │  (Cognito authZ)  │
                               └────────┬─────────┘
                                        │
-                    ┌──────────────────┼──────────────────┐
-                    │                  │                  │
-             ┌──────▼──────┐   ┌───────▼──────┐   ┌───────▼──────┐
-             │   Lambda     │   │   Lambda      │   │   Lambda      │
-             │  (10 funcs,  │   │  functions    │   │  functions    │
-             │  least-priv  │   │  in VPC,      │   │  in VPC,      │
-             │  IAM roles)  │   │  private      │   │  private      │
-             └──────┬──────┘   └───────┬──────┘   └───────┬──────┘
-                    │                  │                  │
-         ┌──────────▼──────┐   ┌───────▼───────┐  ┌───────▼───────┐
-         │   RDS PostgreSQL │   │  S3 (legal     │  │      SES      │
-         │  (private subnet,│   │  docs, via VPC │  │ (email comms) │
-         │   encrypted,     │   │  endpoint —    │  └───────────────┘
-         │   not public)    │   │  no public     │
-         └──────────────────┘   │  internet hop) │
-                                 └────────────────┘
+                       ┌───────────────┴───────────────┐
+                       │                                │
+                ┌──────▼──────┐                 ┌───────▼──────┐
+                │   Lambda     │                 │   Lambda      │
+                │  (10 funcs,  │                 │  functions    │
+                │  least-priv  │                 │  in VPC,      │
+                │  IAM roles)  │                 │  private      │
+                └──────┬──────┘                 └───────┬──────┘
+                       │                                │
+            ┌──────────▼──────┐              ┌──────────▼───────┐
+            │   RDS PostgreSQL │              │  S3 (legal        │
+            │  (private subnet,│              │  docs, via VPC    │
+            │   encrypted,     │              │  endpoint —       │
+            │   not public)    │              │  no public        │
+            └──────────────────┘              │  internet hop)    │
+                                               └────────────────────┘
 ```
+
+*(SES email identities are provisioned in Terraform but not yet wired into any Lambda's send path — see [What I'd build next](#what-id-build-next).)*
 
 **VPC:** Public/private subnet split across two AZs (`ap-southeast-1`). Lambda functions and RDS sit entirely in private subnets; a bastion host provides on-demand SSH access for debugging only, with ingress rules removed when not actively in use.
 
@@ -68,7 +70,6 @@ The schema and application logic follow a real bank delinquency lifecycle, not a
 | Auth | AWS Cognito |
 | API | API Gateway (Cognito-authorized) |
 | Storage | S3 (via VPC endpoint), presigned URLs |
-| Email | Amazon SES |
 | Frontend | React + Vite |
 | Networking | Custom VPC, public/private subnets, security groups, bastion host |
 
@@ -85,6 +86,7 @@ Requires an AWS account and configured credentials. See `start-project.ps1` / `s
 
 ## What I'd build next
 
+- Wire up SES send logic (identities are provisioned; actual reminder/notification emails from Lambda are not yet implemented)
 - Automated `find customer` search (by name, phone, email, or NRIC)
 - RDS Proxy in front of Lambda to manage connection concurrency at scale
 - Toggle Multi-AZ on for production-realistic failover testing
